@@ -2,6 +2,7 @@
 
 <system>
     <include_paths>
+        <include_path>./packages/samd21</include_path>
         <include_path>./packages/samd21/cmsis</include_path>
         <include_path>./packages/samd21/include</include_path>
     </include_paths>

@@ -17,7 +17,6 @@ from prj import execute, commonpath
 def run(system, _=None):
     return system_build(system)
 
-
 def system_build(system):
     inc_path_args = ['-I%s' % i for i in system.include_paths]
     common_flags = ['-mthumb', '-mcpu=cortex-m0plus', '-march=armv6-m', '-g3']
