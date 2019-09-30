@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<system>
+    <include_paths>
+        <include_path>./packages/samd21/cmsis</include_path>
+        <include_path>./packages/samd21/include</include_path>
+    </include_paths>
+    <modules>
+        <module name="samd21.build" />
+        <module name="samd21.ctxt-switch" />
+        <module name="samd21.startup_samd21" />
+        <module name="samd21.rtos-gatria">
+            <prefix>rtos</prefix>
+            <taskid_size>8</taskid_size>
+            <tasks>
+                <task>
+                    <name>thread1</name>
+                    <function>thread1</function>
+                    <stack_size>128</stack_size>
+                </task>
+                <task>
+                    <name>thread2</name>
+                    <function>thread2</function>
+                    <stack_size>128</stack_size>
+                </task>
+            </tasks>
+        </module>
+        <module name="samd21.demo_ping_pong_feather_m0" />
+    </modules>
+</system>
