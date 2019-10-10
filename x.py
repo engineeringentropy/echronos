@@ -101,7 +101,7 @@ topdir = os.path.normpath(os.path.dirname(__file__))  # pylint: disable=invalid-
 CORE_CONFIGURATIONS = {"posix": ["sched-rr-test", "sched-prio-inherit-test", "simple-mutex-test",
                                  "blocking-mutex-test", "simple-semaphore-test", "sched-prio-test",
                                  "acamar", "gatria", "kraz", "acrux", "rigel"],
-                       "samd21": ["gatria"],
+                       "samd21": ["gatria", "kochab"],
                        "armv7m": ["acamar", "gatria", "kraz", "acrux", "rigel", "kochab", "phact"],
                        "ppce500": ["acamar", "gatria", "kraz", "acrux", "kochab", "phact"],
                        "stub": ["acamar", "gatria", "kraz", "acrux", "rigel", "kochab", "phact"]}

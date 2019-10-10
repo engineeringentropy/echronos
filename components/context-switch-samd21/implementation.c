@@ -27,14 +27,7 @@
 #define CONTEXT_SIZE 10
 
 /*| types |*/
-struct samd21_task_t {
-    /* Note that ARM is a full-descending stack, and don't use this. */
-    uint32_t* stack_top;
-    /* The stack is the context */
-    uint32_t* stack;
-};
-
-typedef struct samd21_task_t context_t;
+typedef uint32_t* context_t;
 
 /*| structures |*/
 

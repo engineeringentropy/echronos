@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+     eChronos test for the Kochab ping-pong demo for SAMD21
+-->
+
+<system>
+  <modules>
+    <module name="samd21.build" />
+    <module name="samd21.ctxt-switch-preempt" />
+    <module name="samd21.rtos-kochab">
+      <api_asserts>true</api_asserts>
+      <internal_asserts>true</internal_asserts>
+      <fatal_error>fatal</fatal_error>
+      <prefix>rtos</prefix>
+      <taskid_size>8</taskid_size>
+      <tasks>
+        <task>
+          <name>thread1</name>
+          <function>thread1</function>
+          <stack_size>128</stack_size>
+          <priority>10</priority>
+        </task>
+        <task>
+          <name>thread2</name>
+          <function>thread2</function>
+          <stack_size>128</stack_size>
+          <priority>11</priority>
+        </task>
+      </tasks>
+
+      <mutex>
+        <stats>false</stats>
+      </mutex>
+    </module>
+    <module name="samd21.drivers.samd21-exceptions" />
+    <module name="samd21.drivers.samd21-systick" />
+    <module name="samd21.demo_ping_pong_feather_m0_timer" />
+  </modules>
+</system>
