@@ -21,7 +21,9 @@ static inline void interrupt_event_wait(void);
 static inline uint32_t interrupt_application_event_check(void);
 
 /*| state |*/
+{{#interrupt_events.length}}
 static uint32_t pending_interrupt_events;
+{{/interrupt_events.length}}
 
 /*| function_like_macros |*/
 

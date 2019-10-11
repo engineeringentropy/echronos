@@ -12,6 +12,14 @@
     <modules>
         <module name="samd21.build" />
         <module name="samd21.ctxt-switch-preempt" />
+        <module name="samd21.drivers.samd21-exception-trampolines">
+            <trampolines>
+                <trampoline>
+                    <name>systick</name>
+                    <handler>tick_irq</handler>
+                </trampoline>
+            </trampolines>
+        </module>
         <module name="samd21.rtos-kochab">
             <api_asserts>true</api_asserts>
             <internal_asserts>true</internal_asserts>
@@ -37,10 +45,10 @@
                 <stats>false</stats>
             </mutex>
         </module>
-        <module name="samd21.startup_samd21" />
         <module name="samd21.drivers.samd21-exceptions" />
         <module name="samd21.startup_samd21_kochab" />
         <module name="samd21.drivers.samd21-systick" />
+        <module name="samd21.drivers.samd21-fatal" />
         <module name="samd21.demo_ping_pong_feather_m0_timer" />
     </modules>
 </system>

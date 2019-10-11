@@ -12,6 +12,9 @@ extern uint32_t _ezero;
 extern uint32_t _sstack;
 extern uint32_t _estack;
 
+/* External functions */
+extern int main();
+
 void __libc_init_array(void);
 
 /* Default empty handler */
@@ -21,7 +24,7 @@ void Reset_Handler(void);
 #define VNUL (Dummy_Handler)
 /* Exception Table */
 __attribute__ ((section(".vectors")))
-const DeviceVectors exception_table = {
+DeviceVectors exception_table = {
         (void*) (&_estack), 
         Reset_Handler, 
         VNUL, VNUL, /* NMI, HardFault */

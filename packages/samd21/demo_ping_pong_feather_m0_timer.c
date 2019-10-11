@@ -1,5 +1,10 @@
 #include "samd21.h"
-#include "rtos-gatria.h"
+#include "rtos-kochab.h"
+
+/* Ticks occur at 100Hz */
+const int tickMs = 10;
+/* This is approximately 25ms in tickMs units */
+const int delayTicks = 25;
 
 void thread1(void)
 {
@@ -8,9 +13,9 @@ void thread1(void)
     
     while (1) {
         REG_PORT_OUT0 &= ~(1 << 6);
-        delay(250);
+        rtos_sleep(delayTicks);
         REG_PORT_OUT0 |= (1 << 6);
-        delay(250);
+        rtos_sleep(delayTicks);
     }
 }
 
@@ -21,8 +26,8 @@ void thread2(void)
 
     while (1) {
         REG_PORT_OUT0 |= (1 << 17);
-        delay(250);
+        rtos_sleep(delayTicks);
         REG_PORT_OUT0 &= ~(1 << 17);
-        delay(250);
+        rtos_sleep(delayTicks);
     }
 }

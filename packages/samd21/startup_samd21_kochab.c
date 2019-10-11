@@ -33,16 +33,20 @@
 
 #include <stdint.h>
 
-#include "rtos-gatria.h"
+#include "rtos-kochab.h"
 
 /* Entry to the operating system.
  * Sets up the processor and the various stacks/etc
  */
 int main(void)
 {
+    
     rtos_start();
 
     /* Should never get to here */
+    while (1) {}
+
+    /* To keep the compiler happy */
     return 0;
 }
 

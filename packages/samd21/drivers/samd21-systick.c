@@ -1,9 +1,13 @@
 #include "samd21-systick.h"
+#include "samd21-exceptions.h"
+#include "rtos-kochab.h"
 
 void samd21_systick_init();
 void samd21_systick_enable();
 void samd21_systick_disable();
 void samd21_systick_set_count(uint32_t count);
+
+extern void exception_preempt_trampoline_systick();
 
 void samd21_systick_init()
 {
@@ -15,6 +19,8 @@ void samd21_systick_init()
      */
     SysTick->VAL = 0;
     SysTick->LOAD = 1000000;
+
+    exception_table.pfnSysTick_Handler = exception_preempt_trampoline_systick;
 }
 
 void samd21_systick_enable()
@@ -34,4 +40,11 @@ void samd21_systick_set_count(uint32_t count)
     }
 
     SysTick->LOAD = count & SAMD21_SYSTICK_MASK;
+}
+
+/* This is where the systick comes to */
+int tick_irq()
+{
+    rtos_timer_tick();
+    return 1; /* This forces a preemption */
 }
