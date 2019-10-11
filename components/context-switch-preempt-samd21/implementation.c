@@ -10,11 +10,24 @@
 typedef struct samd21_context_t* context_t;
 
 /*| structures |*/
+/** This is the exception stack and how we add the additional registers to it.
+ */
+struct samd21_context_stack_t {
+    uint32_t xPSR;
+};
+
 struct samd21_context_t {
     uint32_t* stack; /* The stack pointer. Must be valid. */
 };
 
 /*| extern_declarations |*/
+extern void rtos_internal_context_switch_first(context_t *);
+extern void rtos_internal_task_entry_trampoline(void);
+extern uint8_t rtos_internal_check_preempt_disabled(void);
+extern void rtos_internal_yield(void);
+extern void rtos_internal_preempt_enable(void);
+extern void rtos_internal_preempt_disable(void);
+extern void rtos_internal_preempt_pend(void);
 
 /*| function_declarations |*/
 

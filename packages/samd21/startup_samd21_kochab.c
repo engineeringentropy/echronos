@@ -40,12 +40,6 @@
  */
 int main(void)
 {
-    /* For Gatria variant, everything must be unblocked. */
-    RtosTaskId i;
-    for (i = RTOS_TASK_ID_ZERO; i < RTOS_TASK_ID_MAX + 1; i++) {
-        rtos_unblock(i);
-    }
-
     rtos_start();
 
     /* Should never get to here */

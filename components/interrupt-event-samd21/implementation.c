@@ -44,7 +44,7 @@ static inline uint32_t
 interrupt_application_event_check(void)
 {
 {{#interrupt_events.length}}
-    return interrupt_event != 0;
+    return pending_interrupt_events != 0;
 {{/interrupt_events.length}}
 {{^interrupt_events.length}}
     return 0;
@@ -55,10 +55,26 @@ static void
 interrupt_event_process(void)
 {
 {{#interrupt_events.length}}
-    interrupt_event_handle(0);
+    uint32_t tmp = pending_interrupt_events;
+    uint32_t count = 0;
+    uint32_t mask = 1;
+    while (tmp != 0) {
+        if (tmp & mask) {
+            interrupt_event_handle(count);
+        }
+        mask <<= 1;
+        count++;
+    }
 {{/interrupt_events.length}}
 }
 
 /*| public_functions |*/
+{{#interrupt_events.length}}
+void
+{{prefix_func}}interrupt_event_raise(const {{prefix_type}}InterruptEventId interrupt_event_id)
+{
+    pending_interrupt_events = pending_interrupt_events | (1 << interrupt_event_id);
+}
+{{/interrupt_events.length}}
 
 /*| public_privileged_functions |*/

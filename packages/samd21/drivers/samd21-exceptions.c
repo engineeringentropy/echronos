@@ -1,3 +1,17 @@
+#include <stdint.h>
+#include "samd21.h"
+
+/* Initialize segments */
+extern uint32_t _sfixed;
+extern uint32_t _efixed;
+extern uint32_t _etext;
+extern uint32_t _srelocate;
+extern uint32_t _erelocate;
+extern uint32_t _szero;
+extern uint32_t _ezero;
+extern uint32_t _sstack;
+extern uint32_t _estack;
+
 void __libc_init_array(void);
 
 /* Default empty handler */
