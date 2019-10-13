@@ -29,12 +29,10 @@
  * Set the 'preemption pending' status so that a preemption will occur at the soonest possible opportunity.
  */
 .global rtos_internal_preempt_pend
-.type rtos_internal_preempt_pend,#function
 /* void rtos_internal_preempt_pend(void); */
 rtos_internal_preempt_pend:
         asm_preempt_pend r0 r1
         bx lr
-.size rtos_internal_preempt_pend, .-rtos_internal_preempt_pend
 
 trampoline_completion:
         /* If the handler returned 0, jump to the final bx as pre-emption is not required. */
@@ -52,6 +50,7 @@ exception_preempt_trampoline_{{name}}:
         /* Note: We don't care about saving the value of ip (it is scratch), but it is important to keep the stack
          * 8-byte aligned, so push it as a dummy 
          * On entry to an exception, the stack is guaranteed to be 8 byte aligned.
+         * NOTE: This is ON THE HANDLER/MSP stack, NOT THE PSP stack!
          */
         push {r7, lr}
         bl {{handler}}

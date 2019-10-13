@@ -21,11 +21,14 @@ void __libc_init_array(void);
 void Dummy_Handler(void);
 void Reset_Handler(void);
 
+/* This is 512 bytes of MSP stack */
+static uint32_t MSPStack[128] __attribute__((aligned(8)));
+
 #define VNUL (Dummy_Handler)
 /* Exception Table */
 __attribute__ ((section(".vectors")))
 DeviceVectors exception_table = {
-        (void*) (&_estack), 
+        (void*)MSPStack, 
         Reset_Handler, 
         VNUL, VNUL, /* NMI, HardFault */
         VNUL, VNUL, VNUL, VNUL, VNUL, VNUL, VNUL, /* Reserved */
