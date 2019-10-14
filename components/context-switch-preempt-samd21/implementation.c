@@ -9,7 +9,7 @@
 #define SAMD21_CONTEXT_SIZE 16
 
 /*| types |*/
-typedef struct samd21_context_t* context_t;
+typedef struct samd21_task_context_layout_t* context_t;
 
 /*| structures |*/
 /** This is the exception stack and how we add the additional registers to it.
@@ -42,10 +42,6 @@ struct samd21_exception_context_stack_t {
 struct samd21_task_context_layout_t {
     struct samd21_exception_additional_t high;
     struct samd21_exception_context_stack_t low;
-};
-
-struct samd21_context_t {
-    struct samd21_task_context_layout_t* stack; /* The stack pointer. Must be valid. */
 };
 
 /*| extern_declarations |*/
@@ -106,7 +102,7 @@ context_init(context_t *const ctx, void (*const fn)(void),
     uint32_t* stack_top = stack_base + stack_size - SAMD21_CONTEXT_SIZE;
     *ctx = (context_t)stack_top;
 
-    struct samd21_task_context_layout_t* context = (*ctx)->stack;
+    struct samd21_task_context_layout_t* context = *ctx;
     context->low.PC = (uint32_t)fn;
 }
 

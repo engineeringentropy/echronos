@@ -5,6 +5,7 @@
 /*| headers |*/
 #include <stdbool.h>
 #include <stdint.h>
+#include "samd21.h"
 
 /*| object_like_macros |*/
 
@@ -28,11 +29,11 @@ static uint8_t
 timer_pending_ticks_get_and_clear_atomically(void)
 {
     uint8_t pending_ticks;
-    asm volatile("cpsid i");
+    __disable_irq();
     /* No matter our execution priority, we're now priority 0, and can only be interrupted by fault routines */
     pending_ticks = timer_pending_ticks;
     timer_pending_ticks = 0;
-    asm volatile("cpsie i");
+    __enable_irq();
     /* Normal execution priority restored */
     return pending_ticks;
 }

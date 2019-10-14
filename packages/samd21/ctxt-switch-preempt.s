@@ -2,24 +2,6 @@
  *   way that exceptions are handled.
  */
 
-/* This macro invokes the scheduler in order to determine the TaskId of the next task to be switched to.
- * The TaskId of the task to be switched to ends up in r0. */
-.macro asm_invoke_scheduler
-        /* new_task<r0> = interrupt_event_get_next() */
-        push {ip, lr}
-        bl rtos_internal_interrupt_event_get_next
-        pop {ip, lr}
-.endm
-
-/* This macro retrieves the address and current value of the 'rtos_internal_current_task' variable.
- * The pointer to the 'rtos_internal_current_task' variable is placed into the 'current_task_p' register, and the
- * current value of the variable itself is placed into the 'old_task' register. */
-.macro asm_current_task_get current_task_p old_task
-        /* old_task = rtos_internal_current_task */
-        ldr \current_task_p, =rtos_internal_current_task
-        ldrb \old_task, [\current_task_p]
-.endm
-
 /* This function returns 1 if preemption is disabled, and 0 otherwise.
  */
 .global rtos_internal_check_preempt_disabled
@@ -73,9 +55,6 @@ rtos_internal_yield:
 @     struct samd21_exception_context_stack_t low;
 @ };
 
-@ struct samd21_context_t {
-@     struct samd21_task_context_layout_t* stack;
-@ };
 @ void rtos_internal_context_switch_first(context_t *);
 @ */
 .global rtos_internal_context_switch_first
@@ -97,23 +76,186 @@ rtos_internal_context_switch_first:
          * This must be the same as MSPStack in samd21-exceptions.c
          * This is legal because rtos_start doesn't return.
          * Transitively, this means that this function does not return.
+         * Note that add for sp can only be 0-508, so we split this in two.
          */
-        add sp, #512
+        add sp, #508
+        add sp, #4
         /* Switch stacks */
         mrs r2, control
-        or r2, #2
+        mov r0, #2
+        orr r2, r0
         msr control, r2
         /* Start executing the task */
         mov pc, r1
 
+.global rtos_internal_svc_handler
+rtos_internal_svc_handler:
+/* Implements the functionality of rtos_internal_yield. */
+        /* Determine if a context switch is needed, or bail from this handler */
+        /* Call the internal scheduling algorithm. The /TaskId/ of the task to be switched to ends up in r0. */
+        /* new_task<r0> = interrupt_event_get_next() */
+
+        /* r0 = interrupt_event_get_next */
+        mov r1, ip
+        mov r2, lr
+        push {r1-r2}
+        bl rtos_internal_interrupt_event_get_next
+        pop {r1-r2}
+        mov ip, r1
+        mov lr, r2
+        mov r2, r0
+
+        /* r1 = (uint8_t)rtos_internal_current_task */
+        ldr r0, =rtos_internal_current_task
+        ldrb r1, [r0]
+
+        /* if (old_task<r1> == new_task<r0>) return */
+        cmp r2, r1
+        beq 1f
+
+        /* Perform the context switch 
+         * We have the old taskid in r1, and the new task id in r2
+         * Rough algorithm:
+         *  - load a pointer to rtos_internal_tasks, which is defined as struct task rtos_internal_tasks[{{tasks.length}}];
+         *  - dereference pointer to retrieve a pointer to samd21_task_context_layout_t for the old task
+         *  - dereference pointer to retrieve a pointer to samd21_task_context_layout_t for the new task
+         *  - save r4-r11 into the old stack
+         *  - retrieve r4-11 from the new stack
+         *  - change psp to the new stack
+         */
+        
+        lsl r1, #2
+        ldr r0, =rtos_internal_tasks
+        ldr r3, [r0, r1]
+        /* r3 = pointer to samd21_task_context_layout_t for the old task */        
+        /* Store the old context into the stack */
+        sub r3, #32
+        str r3, [r0, r1]
+        str r4, [r3, #0]
+        str r5, [r3, #4]
+        str r6, [r3, #8]
+        str r7, [r3, #12]
+        mov r4, r8
+        mov r5, r9
+        mov r6, r10
+        mov r4, r11
+        str r4, [r3, #16]
+        str r5, [r3, #20]
+        str r6, [r3, #24]
+        str r7, [r3, #28]
+
+        /* Load the new context from the stack */
+        lsl r2, #2
+        ldr r0, =rtos_internal_tasks
+        ldr r3, [r0, r2]
+        ldr r4, [r3, #16]
+        ldr r5, [r3, #20]
+        ldr r6, [r3, #24]
+        ldr r7, [r3, #28]
+        mov r8, r4
+        mov r9, r5
+        mov r10, r6
+        mov r11, r7
+        ldr r4, [r3, #0]
+        ldr r5, [r3, #4]
+        ldr r6, [r3, #8]
+        ldr r7, [r3, #12]
+        add r3, #32
+        str r3, [r0, r2]
+
+        /* Set the new PSP stack */
+        add r2, r0
+        msr psp, r2
+1:
+        bx lr
+
 .global rtos_internal_pendsv_handler
 rtos_internal_pendsv_handler:
-        
-
-.global rtos_tick_irq
-rtos_tick_irq:
-        /* We get here from exception_preempt_trampoline_systick,
-         *  which is done on the MSP.
-         * We need to save the additional registers on the PSP.
-         * We can't be preempted to get back here
+        /* Clear PendSV to avoid a potentially nasty tail-chaining bug
+         * see https://embeddedgurus.com/state-space/2011/09/whats-the-state-of-your-cortex/
          */
+         /* Write  a 1 to ICSR in bit PENDSVCLR 
+          * Can't use MRS/MSR for this for some reason.
+          */
+        ldr r0, =0xE000ED04
+        ldr r1, =0x08000000
+        str r1, [r0]
+
+        /* Determine if a context switch is needed, or bail from this handler */
+        /* Call the internal scheduling algorithm. The /TaskId/ of the task to be switched to ends up in r0. */
+        /* new_task<r0> = interrupt_event_get_next() */
+
+        /* r0 = interrupt_event_get_next */
+        mov r1, ip
+        mov r2, lr
+        push {r1-r2}
+        bl rtos_internal_interrupt_event_get_next
+        pop {r1-r2}
+        mov ip, r1
+        mov lr, r2
+        mov r2, r0
+
+        /* r1 = (uint8_t)rtos_internal_current_task */
+        ldr r0, =rtos_internal_current_task
+        ldrb r1, [r0]
+
+        /* if (old_task<r1> == new_task<r0>) return */
+        cmp r2, r1
+        beq 1f
+
+        /* Perform the context switch 
+         * We have the old taskid in r1, and the new task id in r2
+         * Rough algorithm:
+         *  - load a pointer to rtos_internal_tasks, which is defined as struct task rtos_internal_tasks[{{tasks.length}}];
+         *  - dereference pointer to retrieve a pointer to samd21_task_context_layout_t for the old task
+         *  - dereference pointer to retrieve a pointer to samd21_task_context_layout_t for the new task
+         *  - save r4-r11 into the old stack
+         *  - retrieve r4-11 from the new stack
+         *  - change psp to the new stack
+         */
+        
+        lsl r1, #2
+        ldr r0, =rtos_internal_tasks
+        ldr r3, [r0, r1]
+        /* r3 = pointer to samd21_task_context_layout_t for the old task */        
+        /* Store the old context into the stack */
+        sub r3, #32
+        str r3, [r0, r1]
+        str r4, [r3, #0]
+        str r5, [r3, #4]
+        str r6, [r3, #8]
+        str r7, [r3, #12]
+        mov r4, r8
+        mov r5, r9
+        mov r6, r10
+        mov r4, r11
+        str r4, [r3, #16]
+        str r5, [r3, #20]
+        str r6, [r3, #24]
+        str r7, [r3, #28]
+
+        /* Load the new context from the stack */
+        lsl r2, #2
+        ldr r0, =rtos_internal_tasks
+        ldr r3, [r0, r2]
+        ldr r4, [r3, #16]
+        ldr r5, [r3, #20]
+        ldr r6, [r3, #24]
+        ldr r7, [r3, #28]
+        mov r8, r4
+        mov r9, r5
+        mov r10, r6
+        mov r11, r7
+        ldr r4, [r3, #0]
+        ldr r5, [r3, #4]
+        ldr r6, [r3, #8]
+        ldr r7, [r3, #12]
+        add r3, #32
+        str r3, [r0, r2]
+
+        /* Set the new PSP stack */
+        add r2, r0
+        msr psp, r2
+1:
+        bx lr
+

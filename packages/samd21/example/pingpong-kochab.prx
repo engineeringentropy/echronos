@@ -25,6 +25,7 @@
             <internal_asserts>true</internal_asserts>
             <fatal_error>fatal</fatal_error>
             <prefix>rtos</prefix>
+            <!-- Must be 8 unless the assembly code is updated! -->
             <taskid_size>8</taskid_size>
             <tasks>
                 <task>

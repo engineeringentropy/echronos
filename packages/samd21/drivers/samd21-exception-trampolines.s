@@ -17,21 +17,15 @@
   </schema>
 </module>*/                                                 
 
- /* This macro is used to set the 'preemption pending' status. */
-.macro asm_preempt_pend scratch0 scratch1
-        /* Set the PendSV bit in the ICSR (Interrupt Control and State Register) */
-        ldr \scratch0, =0xE000ED04
-        ldr \scratch1, =0x10000000
-        str \scratch1, [\scratch0]
-.endm
-
 /**
  * Set the 'preemption pending' status so that a preemption will occur at the soonest possible opportunity.
  */
 .global rtos_internal_preempt_pend
 /* void rtos_internal_preempt_pend(void); */
 rtos_internal_preempt_pend:
-        asm_preempt_pend r0 r1
+        ldr r0, =0xE000ED04
+        ldr r1, =0x10000000
+        str r1, [r0]
         bx lr
 
 trampoline_completion:
@@ -39,10 +33,13 @@ trampoline_completion:
         cmp r0, #0
         beq exception_return
 
-        asm_preempt_pend r0 r1
+        /* Set PendSV to do the loop */
+        ldr r0, =0xE000ED04
+        ldr r1, =0x10000000
+        str r1, [r0]
 
 exception_return:
-        pop {r7, pc}
+        bx lr
 
 {{#trampolines}}
 .global exception_preempt_trampoline_{{name}}
