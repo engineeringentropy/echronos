@@ -63,14 +63,15 @@ rtos_internal_context_switch_first:
          * We don't need to set LR or anything else.
          * Interrupts are disable here, we don't enable them.
          * Interrupts are enabled during the entry_{task} function.
+         *
          */
         /* Put the stack pointer into psp */
         ldr r1, [r0]
-        /* Reset the stack by the full size of the context */
         add r1, #64
         msr psp, r1
         /* #56 comes from samd21_exception_context_stack_t */
-        ldr r1, [r0,#56]
+        ldr r1, [r0]
+        ldr r1, [r1,#56]
         /* Clean up our stack to the top
          * Note that this is the size of the SP in bytes!
          * This must be the same as MSPStack in samd21-exceptions.c

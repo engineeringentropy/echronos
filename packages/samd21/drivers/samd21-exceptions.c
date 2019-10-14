@@ -20,6 +20,9 @@ void __libc_init_array(void);
 /* Default empty handler */
 void Dummy_Handler(void);
 void Reset_Handler(void);
+#define DEFINE_HANDLER(name) void handler_##name() {while(1){}}
+#define THUMB_REFERENCE(name) ((void*)((uint32_t)##name|1))
+#define REF_HANDLER(name) ((void*)((uint32_t)handler_##name|1))
 
 /* This is 512 bytes of MSP stack */
 static uint32_t MSPStack[128] __attribute__((aligned(8)));

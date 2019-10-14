@@ -34,13 +34,19 @@
 #include <stdint.h>
 
 #include "rtos-kochab.h"
+#include "samd21-exceptions.h"
+
+extern void rtos_internal_svc_handler();
+extern void rtos_internal_pendsv_handler();
 
 /* Entry to the operating system.
  * Sets up the processor and the various stacks/etc
  */
 int main(void)
 {
-    
+    exception_table.pfnSVC_Handler = (void*)((uint32_t)rtos_internal_svc_handler|1);
+    exception_table.pfnPendSV_Handler = (void*)((uint32_t)rtos_internal_pendsv_handler|1);
+
     rtos_start();
 
     /* Should never get to here */
