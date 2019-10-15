@@ -165,7 +165,6 @@ rtos_internal_svc_handler:
         /* Set the new PSP stack 
          * r0 is a pointer to =rtos_internal_tasks
          */
-        ldr r3, [r0, r2]
         msr psp, r3
 
         /* Disable interrupts if the runflags bit0 is set 
@@ -274,7 +273,6 @@ rtos_internal_pendsv_handler:
         /* Set the new PSP stack 
          * r0 is a pointer to =rtos_internal_tasks
          */
-        ldr r3, [r0, r2]
         msr psp, r3
 
         /* Disable interrupts if the runflags bit0 is set 
