@@ -21,7 +21,8 @@ def system_build(system):
     inc_path_args = ['-I%s' % i for i in system.include_paths]
     common_flags = ['-mthumb', '-mcpu=cortex-m0plus', '-march=armv6-m', '-g3']
     a_flags = common_flags
-    c_flags = common_flags + ['-Os'] + ['-D__SAMD21G18A__']
+    # c_flags = common_flags + ['-Os'] + ['-D__SAMD21G18A__']
+    c_flags = common_flags + ['-Og'] + ['-D__SAMD21G18A__']
     ld_flags = ['-mthumb', '-mcpu=cortex-m0plus', \
                 '-march=armv6-m', '-Wl,--gc-sections', \
                 '-T', './packages/samd21/samd21g18a.ld']

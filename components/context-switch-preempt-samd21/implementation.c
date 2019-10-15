@@ -7,8 +7,14 @@
 #define PREEMPTION_SUPPORT
 /* Count of the number of registers in the context */
 #define SAMD21_CONTEXT_SIZE 16
+/* We need to be able to disable pre-emption the first time a thread is switched to.
+ * This is because eChronos ASSERTS that pre-emption is disabled on task entry.
+ */
+#define SAMD21_CONTEXT_FIRST_RUN_BIT 0x1
+#define SAMD21_CONTEXT_FIRST_RUN_MASK (~(0x1))
 
 /*| types |*/
+typedef uint32_t samd21_run_flags_t;
 typedef struct samd21_task_context_layout_t* context_t;
 
 /*| structures |*/
@@ -42,12 +48,12 @@ struct samd21_exception_context_stack_t {
 struct samd21_task_context_layout_t {
     struct samd21_exception_additional_t high;
     struct samd21_exception_context_stack_t low;
+    samd21_run_flags_t runFlags;
 };
 
 /*| extern_declarations |*/
 extern void rtos_internal_context_switch_first(context_t *);
 extern void rtos_internal_task_entry_trampoline(void);
-extern uint8_t rtos_internal_check_preempt_disabled(void);
 extern void rtos_internal_yield(void);
 extern void rtos_internal_preempt_enable(void);
 extern void rtos_internal_preempt_disable(void);
@@ -69,6 +75,30 @@ extern void rtos_internal_preempt_pend(void);
         ERROR_ID_INTERNAL_POSTCONDITION_VIOLATED)
 
 /*| functions |*/
+static uint8_t 
+rtos_internal_check_preempt_disabled(void)
+{
+    uint32_t primask = __get_PRIMASK();
+    /* if primask & 0x1, then interrupts are disabled. */
+    if (primask & 1) {
+        return 1;
+    }
+    
+    /* Otherwise, if we're in an exception, we need to check its level 
+     * We mask this, which means that the range is definitely not negative.
+     */
+    int ipsr = __get_IPSR() & 0x3F;
+    if (0 == ipsr) {
+        /* Pre-emption is not disabled, because we're in thread mode and not an exception. */
+        return 0;
+    }
+
+    /* Because of the way the Cortex-M0+ works, with PendSV set to a priority level of 3
+     *  we can't be interrupted at this point
+     */
+    return 1;
+}
+
 static void
 preempt_init()
 {
@@ -77,6 +107,17 @@ preempt_init()
     /* Configure the system timer and enable it */
     samd21_systick_init();
     samd21_systick_enable();
+
+    /* Configure the priorities of SysTick, PendSV, SVC
+     * Note that SysTick must always be able to execute, so it has priority 0
+     * SVC comes after that, and PendSV is the final one.
+     * NVIC_SetPriority takes 0-3, but note that this is converted to 0-192 internally
+     * Lower is higher priority
+     */
+    NVIC_SetPriority(SysTick_IRQn, 0);
+    NVIC_SetPriority(SVCall_IRQn, 1);
+    /* Other interrupts are priority 2? */
+    NVIC_SetPriority(PendSV_IRQn, 3);
 }
 
 static void 
@@ -104,6 +145,8 @@ context_init(context_t *const ctx, void (*const fn)(void),
 
     struct samd21_task_context_layout_t* context = *ctx;
     context->low.PC = (uint32_t)fn;
+    context->low.xPSR = (uint32_t)1 << 24;
+    context->runFlags = SAMD21_CONTEXT_FIRST_RUN_BIT;
 }
 
 /*| public_functions |*/

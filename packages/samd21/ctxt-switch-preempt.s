@@ -2,16 +2,6 @@
  *   way that exceptions are handled.
  */
 
-/* This function returns 1 if preemption is disabled, and 0 otherwise.
- */
-.global rtos_internal_check_preempt_disabled
-/* bool rtos_internal_check_preempt_disabled(void); */
-rtos_internal_check_preempt_disabled:
-        mrs r0, primask
-        movs r1, #1
-        and r0, r0, r1
-        bx lr
-
 /**
  * Trigger a context-switch to the next task runnable as determined by the scheduler.
  * Intended to be used by the RTOS internally after taking actions that change the set of schedulable tasks.
@@ -19,10 +9,15 @@ rtos_internal_check_preempt_disabled:
 .global rtos_internal_yield
 /* void rtos_internal_yield(void); */
 rtos_internal_yield:
-        /* We implement manual context switch using ARM's SVC (supervisor call) exception.
-         * Upon executing the 'svc' instruction, the CPU immediately takes a SVC exception and jumps to
-         * 'rtos_internal_svc_handler'. */
+        /* Pre-emption is generally disabled when we get here.
+         * A task that is yielding probably doesn't mind being preempted.
+         * We can't call svc with pre-emption disabled, but we can't disable pendsv easily.
+         * Solution seems to be enable pre-emption (no other datastructures are being touched)
+         *   and then do a synchronous yield with svc
+         */
+        cpsie i
         svc #0
+        cpsid i
         bx lr
 
 /*
@@ -53,6 +48,7 @@ rtos_internal_yield:
 @ struct samd21_task_context_layout_t {
 @     struct samd21_exception_additional_t high;
 @     struct samd21_exception_context_stack_t low;
+@     uint32_t runFlags; /* 64 */
 @ };
 
 @ void rtos_internal_context_switch_first(context_t *);
@@ -67,7 +63,7 @@ rtos_internal_context_switch_first:
          */
         /* Put the stack pointer into psp */
         ldr r1, [r0]
-        add r1, #64
+        add r1, #68
         msr psp, r1
         /* #56 comes from samd21_exception_context_stack_t */
         ldr r1, [r0]
@@ -86,10 +82,12 @@ rtos_internal_context_switch_first:
         mov r0, #2
         orr r2, r0
         msr control, r2
+
         /* Start executing the task */
         mov pc, r1
 
 .global rtos_internal_svc_handler
+.thumb_func
 rtos_internal_svc_handler:
 /* Implements the functionality of rtos_internal_yield. */
         /* Determine if a context switch is needed, or bail from this handler */
@@ -164,13 +162,32 @@ rtos_internal_svc_handler:
         add r3, #32
         str r3, [r0, r2]
 
-        /* Set the new PSP stack */
-        add r2, r0
-        msr psp, r2
+        /* Set the new PSP stack 
+         * r0 is a pointer to =rtos_internal_tasks
+         */
+        ldr r3, [r0, r2]
+        msr psp, r3
+
+        /* Disable interrupts if the runflags bit0 is set 
+         * Note that we've moved the stack pointer up by 32 bytes,
+         *  so the +64 offset becomes +32
+         */
+        ldr r0, [r3, #32]
+        mov r1, #1
+        and r1, r0
+        cmp r1, #0
+        beq 1f
+        /* Disable interrupts on return if this is the first time a thread is being run */
+        cpsid i
+        /* Reset the bit */
+        ldr r1, =0xFFFFFFFE
+        and r0, r1
+        str r0, [r3, #32]
 1:
         bx lr
 
 .global rtos_internal_pendsv_handler
+.thumb_func
 rtos_internal_pendsv_handler:
         /* Clear PendSV to avoid a potentially nasty tail-chaining bug
          * see https://embeddedgurus.com/state-space/2011/09/whats-the-state-of-your-cortex/
@@ -254,9 +271,27 @@ rtos_internal_pendsv_handler:
         add r3, #32
         str r3, [r0, r2]
 
-        /* Set the new PSP stack */
-        add r2, r0
-        msr psp, r2
+        /* Set the new PSP stack 
+         * r0 is a pointer to =rtos_internal_tasks
+         */
+        ldr r3, [r0, r2]
+        msr psp, r3
+
+        /* Disable interrupts if the runflags bit0 is set 
+         * Note that we've moved the stack pointer up by 32 bytes,
+         *  so the +64 offset becomes +32
+         */
+        ldr r0, [r3, #32]
+        mov r1, #1
+        and r1, r0
+        cmp r1, #0
+        beq 1f
+        /* Disable interrupts on return if this is the first time a thread is being run */
+        cpsid i
+        /* Reset the bit */
+        ldr r1, =0xFFFFFFFE
+        and r0, r1
+        str r0, [r3, #32]
 1:
         bx lr
 

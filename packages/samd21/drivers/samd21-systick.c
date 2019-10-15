@@ -19,8 +19,6 @@ void samd21_systick_init()
      */
     SysTick->VAL = 0;
     SysTick->LOAD = 1000000;
-
-    exception_table.pfnSysTick_Handler = (void*)((uint32_t)exception_preempt_trampoline_systick|1);
 }
 
 void samd21_systick_enable()

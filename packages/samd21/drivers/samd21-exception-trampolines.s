@@ -34,15 +34,15 @@ trampoline_completion:
         beq exception_return
 
         /* Set PendSV to do the loop */
-        ldr r0, =0xE000ED04
-        ldr r1, =0x10000000
-        str r1, [r0]
+        bl rtos_internal_preempt_pend
 
 exception_return:
-        bx lr
+        /* LR is saved with R& in exception_preempt_trampoline_ */
+        pop {r7, pc}
 
 {{#trampolines}}
 .global exception_preempt_trampoline_{{name}}
+.thumb_func
 exception_preempt_trampoline_{{name}}:
         /* Note: We don't care about saving the value of ip (it is scratch), but it is important to keep the stack
          * 8-byte aligned, so push it as a dummy 

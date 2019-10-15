@@ -20,29 +20,72 @@ void __libc_init_array(void);
 /* Default empty handler */
 void Dummy_Handler(void);
 void Reset_Handler(void);
-#define DEFINE_HANDLER(name) void handler_##name() {while(1){}}
-#define THUMB_REFERENCE(name) ((void*)((uint32_t)##name|1))
-#define REF_HANDLER(name) ((void*)((uint32_t)handler_##name|1))
+
+#define REF_HANDLER(name) name
 
 /* This is 512 bytes of MSP stack */
 static uint32_t MSPStack[128] __attribute__((aligned(8)));
 
 #define VNUL (Dummy_Handler)
+
+extern void rtos_internal_svc_handler();
+extern void rtos_internal_pendsv_handler();
+extern void exception_preempt_trampoline_systick();
+
+/* Exception handlers so that we can tell which exception got taken */
+void exception_hard_fault()
+{
+        while(1) { }
+}
+
 /* Exception Table */
 __attribute__ ((section(".vectors")))
 DeviceVectors exception_table = {
-        (void*)MSPStack, 
-        Reset_Handler, 
-        VNUL, VNUL, /* NMI, HardFault */
-        VNUL, VNUL, VNUL, VNUL, VNUL, VNUL, VNUL, /* Reserved */
-        VNUL, /* SVC_Handler */
-        VNUL, VNUL, /* Reserved */
-        VNUL, VNUL, /* PendSV, SysTick */
-        VNUL, VNUL, VNUL, VNUL, VNUL, VNUL, VNUL, /* PM, SYSCTRL, WDT, RTC, EIC, NVMCTRL, DMAC */
-        VNUL, /* USB Handler */
-        VNUL, VNUL, VNUL, VNUL, VNUL, VNUL, VNUL, /* EVSYS, SERCOM0-5 */
-        VNUL, VNUL, VNUL, VNUL, VNUL, VNUL, VNUL, VNUL, /* TCC1, TCC2, TC3-TC7 */
-        VNUL, VNUL, VNUL, VNUL, VNUL, VNUL /* ADC, AC, DAC, PTC, I2S, AC1, TCC3 */
+        .pvStack = (void*)MSPStack,
+        .pfnReset_Handler = REF_HANDLER(Reset_Handler),
+        .pfnNMI_Handler = VNUL,
+        .pfnHardFault_Handler = REF_HANDLER(exception_hard_fault),
+        .pvReservedM12 = VNUL, /* NMI, HardFault */
+        .pvReservedM11 = VNUL,
+        .pvReservedM10 = VNUL,
+        .pvReservedM9 = VNUL,
+        .pvReservedM8 = VNUL,
+        .pvReservedM7 = VNUL,
+        .pvReservedM6 = VNUL, /* Reserved */
+        .pfnSVC_Handler = REF_HANDLER(rtos_internal_svc_handler), /* SVC_Handler */
+        .pvReservedM4 = VNUL,
+        .pvReservedM3 = VNUL, /* Reserved */
+        .pfnPendSV_Handler = REF_HANDLER(rtos_internal_pendsv_handler),
+        .pfnSysTick_Handler = REF_HANDLER(exception_preempt_trampoline_systick), /* PendSV, SysTick */
+        .pfnPM_Handler = VNUL,
+        .pfnSYSCTRL_Handler = VNUL,
+        .pfnWDT_Handler = VNUL,
+        .pfnRTC_Handler = VNUL,
+        .pfnEIC_Handler = VNUL,
+        .pfnNVMCTRL_Handler = VNUL,
+        .pfnDMAC_Handler = VNUL, /* PM, SYSCTRL, WDT, RTC, EIC, NVMCTRL, DMAC */
+        .pfnUSB_Handler = VNUL, /* USB Handler */
+        .pfnEVSYS_Handler = VNUL,
+        .pfnSERCOM0_Handler = VNUL,
+        .pfnSERCOM1_Handler = VNUL,
+        .pfnSERCOM2_Handler = VNUL,
+        .pfnSERCOM3_Handler = VNUL,
+        .pfnSERCOM4_Handler = VNUL,
+        .pfnSERCOM5_Handler = VNUL, /* EVSYS, SERCOM0-5 */
+        .pfnTCC0_Handler = VNUL,
+        .pfnTCC1_Handler = VNUL,
+        .pfnTCC2_Handler = VNUL,
+        .pfnTC3_Handler = VNUL,
+        .pfnTC4_Handler = VNUL,
+        .pfnTC5_Handler = VNUL,
+        .pvReserved21 = VNUL,
+        .pvReserved22 = VNUL, /* TCC1, TCC2, TC3-TC7 */
+        .pfnADC_Handler = VNUL,
+        .pfnAC_Handler = VNUL,
+        .pfnDAC_Handler = VNUL,
+        .pfnPTC_Handler = VNUL,
+        .pfnI2S_Handler = VNUL,
+        .pvReserved28 = VNUL /* ADC, AC, DAC, PTC, I2S, AC1, TCC3 */
 };
 
 /**
@@ -95,9 +138,6 @@ void Reset_Handler(void)
         while (1);
 }
 
-/**
- * \brief Default interrupt handler for unused IRQs.
- */
 void Dummy_Handler(void)
 {
         while (1) {

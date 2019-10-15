@@ -44,9 +44,6 @@ extern void rtos_internal_pendsv_handler();
  */
 int main(void)
 {
-    exception_table.pfnSVC_Handler = (void*)((uint32_t)rtos_internal_svc_handler|1);
-    exception_table.pfnPendSV_Handler = (void*)((uint32_t)rtos_internal_pendsv_handler|1);
-
     rtos_start();
 
     /* Should never get to here */
