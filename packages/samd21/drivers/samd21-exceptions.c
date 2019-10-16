@@ -24,7 +24,8 @@ void Reset_Handler(void);
 #define REF_HANDLER(name) name
 
 /* This is 512 bytes of MSP stack */
-static uint32_t MSPStack[128] __attribute__((aligned(8)));
+uint32_t MSPStack[128] __attribute__((aligned(8)));
+#define MSPStackEnd ((void*)&MSPStack[129])
 
 #define VNUL (Dummy_Handler)
 
@@ -41,7 +42,7 @@ void exception_hard_fault()
 /* Exception Table */
 __attribute__ ((section(".vectors")))
 DeviceVectors exception_table = {
-        .pvStack = (void*)MSPStack,
+        .pvStack = MSPStackEnd,
         .pfnReset_Handler = REF_HANDLER(Reset_Handler),
         .pfnNMI_Handler = VNUL,
         .pfnHardFault_Handler = REF_HANDLER(exception_hard_fault),

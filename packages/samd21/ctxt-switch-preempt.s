@@ -75,6 +75,8 @@ rtos_internal_context_switch_first:
          * Transitively, this means that this function does not return.
          * Note that add for sp can only be 0-508, so we split this in two.
          */
+        ldr r0, =MSPStack
+        mov sp, r0
         add sp, #508
         add sp, #4
         /* Switch stacks */
@@ -93,6 +95,8 @@ rtos_internal_svc_handler:
         /* Determine if a context switch is needed, or bail from this handler */
         /* Call the internal scheduling algorithm. The /TaskId/ of the task to be switched to ends up in r0. */
         /* new_task<r0> = interrupt_event_get_next() */
+
+        /* Note that this function runs on MSP */
 
         /* r0 = interrupt_event_get_next */
         mov r1, ip
@@ -125,7 +129,7 @@ rtos_internal_svc_handler:
         
         lsl r1, #2
         ldr r0, =rtos_internal_tasks
-        ldr r3, [r0, r1]
+        mrs r3, psp
         /* r3 = pointer to samd21_task_context_layout_t for the old task */        
         /* Store the old context into the stack */
         sub r3, #32
@@ -233,7 +237,7 @@ rtos_internal_pendsv_handler:
         
         lsl r1, #2
         ldr r0, =rtos_internal_tasks
-        ldr r3, [r0, r1]
+        mrs r3, psp
         /* r3 = pointer to samd21_task_context_layout_t for the old task */        
         /* Store the old context into the stack */
         sub r3, #32

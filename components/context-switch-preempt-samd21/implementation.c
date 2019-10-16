@@ -6,7 +6,7 @@
 /*| object_like_macros |*/
 #define PREEMPTION_SUPPORT
 /* Count of the number of registers in the context */
-#define SAMD21_CONTEXT_SIZE 16
+#define SAMD21_CONTEXT_SIZE 17
 /* We need to be able to disable pre-emption the first time a thread is switched to.
  * This is because eChronos ASSERTS that pre-emption is disabled on task entry.
  */
