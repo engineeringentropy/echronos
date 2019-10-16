@@ -23,32 +23,33 @@ typedef struct samd21_task_context_layout_t* context_t;
 
 /* The additional parts that need saving for a full context restoration */
 struct samd21_exception_additional_t {
-    uint32_t R4; /* 0 */
-    uint32_t R5; /* 4 */
-    uint32_t R6; /* 8 */
-    uint32_t R7; /* 12 */
-    uint32_t R8; /* 16 */
-    uint32_t R9; /* 20 */
-    uint32_t R10; /* 24 */
-    uint32_t R11; /* 28 */
+    uint32_t R4; /* 4 */
+    uint32_t R5; /* 8 */
+    uint32_t R6; /* 12 */
+    uint32_t R7; /* 16 */
+    uint32_t R8; /* 20 */
+    uint32_t R9; /* 24 */
+    uint32_t R10; /* 28 */
+    uint32_t R11; /* 32 */
 };
 
 /* On exception entry from an interrupt */
 struct samd21_exception_context_stack_t {
-    uint32_t R0; /* 32 */
-    uint32_t R1; /* 36 */
-    uint32_t R2; /* 40 */
-    uint32_t R3; /* 44 */
-    uint32_t R12; /* 48 */
-    uint32_t LR; /* 52 */
-    uint32_t PC; /* 56 */
-    uint32_t xPSR; /* 60 */
+    uint32_t R0; /* 36 */
+    uint32_t R1; /* 40 */
+    uint32_t R2; /* 44 */
+    uint32_t R3; /* 48 */
+    uint32_t R12; /* 52 */
+    uint32_t LR; /* 56 */
+    uint32_t PC; /* 60 */
+    uint32_t xPSR; /* 64 */
 };
 
 struct samd21_task_context_layout_t {
+    /* The run flags are used to disable preemption on the first time through. This is a requirement of KOCHAB. */
+    samd21_run_flags_t runFlags;
     struct samd21_exception_additional_t high;
     struct samd21_exception_context_stack_t low;
-    samd21_run_flags_t runFlags;
 };
 
 /*| extern_declarations |*/

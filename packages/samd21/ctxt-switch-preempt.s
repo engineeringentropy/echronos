@@ -96,8 +96,6 @@ rtos_internal_svc_handler:
         /* Call the internal scheduling algorithm. The /TaskId/ of the task to be switched to ends up in r0. */
         /* new_task<r0> = interrupt_event_get_next() */
 
-        /* Note that this function runs on MSP */
-
         /* r0 = interrupt_event_get_next */
         mov r1, ip
         mov r2, lr
@@ -132,39 +130,28 @@ rtos_internal_svc_handler:
         mrs r3, psp
         /* r3 = pointer to samd21_task_context_layout_t for the old task */        
         /* Store the old context into the stack */
-        sub r3, #32
+        sub r3, #36
         str r3, [r0, r1]
-        str r4, [r3, #0]
-        str r5, [r3, #4]
-        str r6, [r3, #8]
-        str r7, [r3, #12]
+        ldr r0, #0
+        stmia r3!, {r0,r4-r7}
         mov r4, r8
         mov r5, r9
         mov r6, r10
         mov r4, r11
-        str r4, [r3, #16]
-        str r5, [r3, #20]
-        str r6, [r3, #24]
-        str r7, [r3, #28]
+        stmia r3!, {r4-r7}
 
         /* Load the new context from the stack */
         lsl r2, #2
         ldr r0, =rtos_internal_tasks
         ldr r3, [r0, r2]
-        ldr r4, [r3, #16]
-        ldr r5, [r3, #20]
-        ldr r6, [r3, #24]
-        ldr r7, [r3, #28]
+        add r3, #16
+        ldmia r3!, {r4-r7}
         mov r8, r4
         mov r9, r5
         mov r10, r6
         mov r11, r7
-        ldr r4, [r3, #0]
-        ldr r5, [r3, #4]
-        ldr r6, [r3, #8]
-        ldr r7, [r3, #12]
-        add r3, #32
-        str r3, [r0, r2]
+        sub r3, #36 /* 16 + 4 * 4  + 4 */
+        ldmia r3!, {r0, r4-r7}
 
         /* Set the new PSP stack 
          * r0 is a pointer to =rtos_internal_tasks
@@ -175,7 +162,6 @@ rtos_internal_svc_handler:
          * Note that we've moved the stack pointer up by 32 bytes,
          *  so the +64 offset becomes +32
          */
-        ldr r0, [r3, #32]
         mov r1, #1
         and r1, r0
         cmp r1, #0
@@ -224,7 +210,7 @@ rtos_internal_pendsv_handler:
         cmp r2, r1
         beq 1f
 
-        /* Perform the context switch 
+                /* Perform the context switch 
          * We have the old taskid in r1, and the new task id in r2
          * Rough algorithm:
          *  - load a pointer to rtos_internal_tasks, which is defined as struct task rtos_internal_tasks[{{tasks.length}}];
@@ -240,39 +226,28 @@ rtos_internal_pendsv_handler:
         mrs r3, psp
         /* r3 = pointer to samd21_task_context_layout_t for the old task */        
         /* Store the old context into the stack */
-        sub r3, #32
+        sub r3, #36
         str r3, [r0, r1]
-        str r4, [r3, #0]
-        str r5, [r3, #4]
-        str r6, [r3, #8]
-        str r7, [r3, #12]
+        ldr r0, #0
+        stmia r3!, {r0,r4-r7}
         mov r4, r8
         mov r5, r9
         mov r6, r10
         mov r4, r11
-        str r4, [r3, #16]
-        str r5, [r3, #20]
-        str r6, [r3, #24]
-        str r7, [r3, #28]
+        stmia r3!, {r4-r7}
 
         /* Load the new context from the stack */
         lsl r2, #2
         ldr r0, =rtos_internal_tasks
         ldr r3, [r0, r2]
-        ldr r4, [r3, #16]
-        ldr r5, [r3, #20]
-        ldr r6, [r3, #24]
-        ldr r7, [r3, #28]
+        add r3, #16
+        ldmia r3!, {r4-r7}
         mov r8, r4
         mov r9, r5
         mov r10, r6
         mov r11, r7
-        ldr r4, [r3, #0]
-        ldr r5, [r3, #4]
-        ldr r6, [r3, #8]
-        ldr r7, [r3, #12]
-        add r3, #32
-        str r3, [r0, r2]
+        sub r3, #36 /* 16 + 4 * 4  + 4 */
+        ldmia r3!, {r0, r4-r7}
 
         /* Set the new PSP stack 
          * r0 is a pointer to =rtos_internal_tasks
@@ -283,7 +258,6 @@ rtos_internal_pendsv_handler:
          * Note that we've moved the stack pointer up by 32 bytes,
          *  so the +64 offset becomes +32
          */
-        ldr r0, [r3, #32]
         mov r1, #1
         and r1, r0
         cmp r1, #0
