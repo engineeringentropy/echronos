@@ -14,11 +14,11 @@ void samd21_systick_init()
     SysTick->CTRL = /* SysTick_CTRL_ENABLE_Msk | */
                     SysTick_CTRL_CLKSOURCE_Msk | /* Use the GCLK_CPU */
                     SysTick_CTRL_TICKINT_Msk; /* Sets SysTick exception to pending */
-    /* After reset, the SAMD21 is running OSC8M with /8 - this is approximately 1s between ticks 
+    /* After reset, the SAMD21 is running OSC8M with /8 - this is approximately 10ms between ticks 
      * Use samd21_systick_set_count to set this to a proper value
      */
     SysTick->VAL = 0;
-    SysTick->LOAD = 1000000;
+    SysTick->LOAD = 10000;
 }
 
 void samd21_systick_enable()
