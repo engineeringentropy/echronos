@@ -12,9 +12,9 @@ void thread1(void)
     REG_PORT_DIR0 |= (1 << 6);
     
     while (1) {
-        REG_PORT_OUT0 &= ~(1 << 6);
-        rtos_sleep(delayTicks);
         REG_PORT_OUT0 |= (1 << 6);
+        rtos_sleep(delayTicks);
+        REG_PORT_OUT0 &= ~(1 << 6);
         rtos_sleep(delayTicks);
     }
 }

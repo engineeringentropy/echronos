@@ -39,12 +39,16 @@
 extern void rtos_internal_svc_handler();
 extern void rtos_internal_pendsv_handler();
 
+extern void set_cookie(uint32_t);
+
 /* Entry to the operating system.
  * Sets up the processor and the various stacks/etc
  */
 int main(void)
 {
+    set_cookie(2);
     rtos_start();
+    set_cookie(0xFFFFFFFF);
 
     /* Should never get to here */
     while (1) {}

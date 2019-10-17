@@ -27,6 +27,12 @@ void Reset_Handler(void);
 uint32_t MSPStack[128] __attribute__((aligned(8)));
 #define MSPStackEnd ((void*)&MSPStack[129])
 
+uint32_t debug_cookie;
+void set_cookie(uint32_t c)
+{
+        debug_cookie = c;
+}
+
 #define VNUL (Dummy_Handler)
 
 extern void rtos_internal_svc_handler();
@@ -97,6 +103,8 @@ void Reset_Handler(void)
 {
         uint32_t *pSrc, *pDest;
 
+        set_cookie(0);
+
         /* Initialize the relocate segment */
         pSrc = &_etext;
         pDest = &_srelocate;
@@ -133,6 +141,7 @@ void Reset_Handler(void)
         __libc_init_array();
 
         /* Branch to main function */
+        set_cookie(1);
         main();
 
         /* Infinite loop */
