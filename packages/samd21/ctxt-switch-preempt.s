@@ -20,37 +20,38 @@ rtos_internal_yield:
         cpsid i
         bx lr
 
+/* 
+struct samd21_exception_additional_t {
+    uint32_t R8;
+    uint32_t R9;
+    uint32_t R10;
+    uint32_t R11;
+    samd21_run_flags_t runFlags;
+    uint32_t R4;
+    uint32_t R5;
+    uint32_t R6;
+    uint32_t R7;
+};
+
+/* On exception entry from an interrupt
+struct samd21_exception_context_stack_t {
+    uint32_t R0;
+    uint32_t R1;
+    uint32_t R2;
+    uint32_t R3;
+    uint32_t R12;
+    uint32_t LR;
+    uint32_t PC;
+    uint32_t xPSR;
+};
+
+struct samd21_task_context_layout_t {
+    struct samd21_exception_additional_t high;
+    struct samd21_exception_context_stack_t low;
+};
+ */
+
 /*
-@ The additional parts that need saving for a full context restoration
-@ struct samd21_exception_additional_t {
-@     uint32_t R4; /* 0 */
-@     uint32_t R5; /* 4 */
-@     uint32_t R6; /* 8 */
-@     uint32_t R7; /* 12 */
-@     uint32_t R8; /* 16 */
-@     uint32_t R9; /* 20 */
-@     uint32_t R10; /* 24 */
-@     uint32_t R11; /* 28 */
-@ };
-
-@ /* On exception entry from an interrupt */
-@ struct samd21_exception_context_stack_t {
-@     uint32_t R0; /* 32 */
-@     uint32_t R1; /* 36 */
-@     uint32_t R2; /* 40 */
-@     uint32_t R3; /* 44 */
-@     uint32_t R12; /* 48 */
-@     uint32_t LR; /* 52 */
-@     uint32_t PC; /* 56 */
-@     uint32_t xPSR; /* 60 */
-@ };
-
-@ struct samd21_task_context_layout_t {
-@     struct samd21_exception_additional_t high;
-@     struct samd21_exception_context_stack_t low;
-@     uint32_t runFlags; /* 64 */
-@ };
-
 @ void rtos_internal_context_switch_first(context_t *);
 @ */
 .global rtos_internal_context_switch_first
@@ -63,7 +64,7 @@ rtos_internal_context_switch_first:
          */
         /* Put the stack pointer into psp */
         ldr r1, [r0]
-        /* #60 comes from samd21_exception_context_stack_t */
+        /* PC is #60 and comes from samd21_exception_context_stack_t */
         ldr r3, [r1,#60]
         add r1, #68
         /* Note that for the first task, we don't care about runFlags or xPSR thumb mode */
@@ -135,24 +136,26 @@ rtos_internal_svc_handler:
         /* Store the old context into the stack */
         sub r3, #36
         str r3, [r0, r1]
+        add r3, #16
         mov r0, #0
         stmia r3!, {r0,r4-r7}
         mov r4, r8
         mov r5, r9
         mov r6, r10
-        mov r4, r11
+        mov r7, r11
+        sub r3, #36
         stmia r3!, {r4-r7}
 
         /* Load the new context from the stack */
         lsl r2, #2
         ldr r0, =rtos_internal_tasks
         ldr r3, [r0, r2]
-        ldmia r3!, {r0, r4-r7}
+        ldmia r3!, {r4-r7}
         mov r8, r4
         mov r9, r5
         mov r10, r6
         mov r11, r7
-        ldmia r3!, {r4-r7}
+        ldmia r3!, {r0, r4-r7}
 
         /* Set the new PSP stack 
          * r0 is a pointer to =rtos_internal_tasks
@@ -207,9 +210,6 @@ rtos_internal_pendsv_handler:
         cmp r2, r1
         beq 1f
 
-        /* If we're going to task switch, we need to save the new task */
-        strb r2, [r0]
-
         /* Perform the context switch 
          * We have the old taskid in r1, and the new task id in r2
          * Rough algorithm:
@@ -228,24 +228,26 @@ rtos_internal_pendsv_handler:
         /* Store the old context into the stack */
         sub r3, #36
         str r3, [r0, r1]
+        add r3, #16
         mov r0, #0
         stmia r3!, {r0,r4-r7}
         mov r4, r8
         mov r5, r9
         mov r6, r10
-        mov r4, r11
+        mov r7, r11
+        sub r3, #36
         stmia r3!, {r4-r7}
 
         /* Load the new context from the stack */
         lsl r2, #2
         ldr r0, =rtos_internal_tasks
         ldr r3, [r0, r2]
-        ldmia r3!, {r0, r4-r7}
+        ldmia r3!, {r4-r7}
         mov r8, r4
         mov r9, r5
         mov r10, r6
         mov r11, r7
-        ldmia r3!, {r4-r7}
+        ldmia r3!, {r0, r4-r7}
 
         /* Set the new PSP stack 
          * r0 is a pointer to =rtos_internal_tasks

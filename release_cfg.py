@@ -12,6 +12,14 @@
 
 from pylib.release import Release
 
+class Samd21(Release):
+    release_name = 'samd21'
+    product_name = 'eChronos-SAMD21'
+    enabled = True
+    version = '1.0.0'
+    platforms = ['x86_64-unknown-linux-gnu']
+    packages = ['samd21']
+    license = ''
 
 
 class Standard(Release):

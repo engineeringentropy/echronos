@@ -23,14 +23,16 @@ typedef struct samd21_task_context_layout_t* context_t;
 
 /* The additional parts that need saving for a full context restoration */
 struct samd21_exception_additional_t {
-    uint32_t R4; /* 4 */
-    uint32_t R5; /* 8 */
-    uint32_t R6; /* 12 */
-    uint32_t R7; /* 16 */
-    uint32_t R8; /* 20 */
-    uint32_t R9; /* 24 */
-    uint32_t R10; /* 28 */
-    uint32_t R11; /* 32 */
+    uint32_t R8;
+    uint32_t R9;
+    uint32_t R10;
+    uint32_t R11;
+    /* The run flags are used to disable preemption on the first time through. This is a requirement of KOCHAB. */
+    samd21_run_flags_t runFlags;
+    uint32_t R4;
+    uint32_t R5;
+    uint32_t R6;
+    uint32_t R7;
 };
 
 /* On exception entry from an interrupt */
@@ -46,8 +48,6 @@ struct samd21_exception_context_stack_t {
 };
 
 struct samd21_task_context_layout_t {
-    /* The run flags are used to disable preemption on the first time through. This is a requirement of KOCHAB. */
-    samd21_run_flags_t runFlags;
     struct samd21_exception_additional_t high;
     struct samd21_exception_context_stack_t low;
 };
@@ -147,7 +147,7 @@ context_init(context_t *const ctx, void (*const fn)(void),
     struct samd21_task_context_layout_t* context = *ctx;
     context->low.PC = (uint32_t)fn;
     context->low.xPSR = (uint32_t)1 << 24;
-    context->runFlags = SAMD21_CONTEXT_FIRST_RUN_BIT;
+    context->high.runFlags = SAMD21_CONTEXT_FIRST_RUN_BIT;
 }
 
 /*| public_functions |*/
