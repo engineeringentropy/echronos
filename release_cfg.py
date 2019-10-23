@@ -13,6 +13,7 @@
 from pylib.release import Release
 
 
+
 class Standard(Release):
     packages = ['armv7m', 'generic', 'rtos-example', 'machine-qemu-simple', 'machine-stm32f4-discovery',
                 'machine-armv7m-common']
