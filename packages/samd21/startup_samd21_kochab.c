@@ -35,9 +35,7 @@
 
 #include "rtos-kochab.h"
 #include "samd21-exceptions.h"
-
-extern void rtos_internal_svc_handler();
-extern void rtos_internal_pendsv_handler();
+#include "samd21-usart.h"
 
 extern void set_cookie(uint32_t);
 
@@ -47,6 +45,10 @@ extern void set_cookie(uint32_t);
 int main(void)
 {
     set_cookie(2);
+
+    samd21_usart_configure();
+    samd21_usart_enable();
+
     rtos_start();
     set_cookie(0xFFFFFFFF);
 

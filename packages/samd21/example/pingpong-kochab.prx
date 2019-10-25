@@ -50,6 +50,7 @@
         <module name="samd21.startup_samd21_kochab" />
         <module name="samd21.drivers.samd21-systick" />
         <module name="samd21.drivers.samd21-fatal" />
+        <module name="samd21.drivers.samd21-usart" />
         <module name="samd21.demo_ping_pong_feather_m0_timer" />
     </modules>
 </system>
