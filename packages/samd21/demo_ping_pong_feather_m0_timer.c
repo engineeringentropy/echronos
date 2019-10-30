@@ -9,7 +9,6 @@ const int delayTicks = 25;
 
 void thread1(void)
 {
-    samd21_usart_send_byte(0x1);
     /* Do thread intialisation */
     REG_PORT_DIR0 |= (1 << 6);
     
@@ -23,7 +22,6 @@ void thread1(void)
 
 void thread2(void)
 {
-    samd21_usart_send_byte(0x2);
     /* Do thread initialisation */
     REG_PORT_DIR0 |= (1 << 17);
 
