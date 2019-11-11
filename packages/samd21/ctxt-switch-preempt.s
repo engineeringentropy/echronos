@@ -210,6 +210,9 @@ rtos_internal_pendsv_handler:
         cmp r2, r1
         beq 1f
 
+        /* If we're going to task switch, we need to save the new task */
+        strb r2, [r0]
+
         /* Perform the context switch 
          * We have the old taskid in r1, and the new task id in r2
          * Rough algorithm:
