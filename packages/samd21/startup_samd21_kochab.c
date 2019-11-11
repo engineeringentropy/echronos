@@ -35,22 +35,14 @@
 
 #include "rtos-kochab.h"
 #include "samd21-exceptions.h"
-#include "samd21-usart.h"
 
-extern void set_cookie(uint32_t);
 
 /* Entry to the operating system.
  * Sets up the processor and the various stacks/etc
  */
 int main(void)
 {
-    set_cookie(2);
-
-    samd21_usart_configure();
-    samd21_usart_enable();
-
     rtos_start();
-    set_cookie(0xFFFFFFFF);
 
     /* Should never get to here */
     while (1) {}

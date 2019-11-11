@@ -1,5 +1,4 @@
 #include "samd21.h"
-#include "samd21-usart.h"
 #include "rtos-kochab.h"
 
 /* Ticks occur at 100Hz */
