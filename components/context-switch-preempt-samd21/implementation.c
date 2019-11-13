@@ -105,9 +105,6 @@ preempt_init()
 {
     /* Disable all interrupts */
     __disable_irq();
-    /* Configure the system timer and enable it */
-    samd21_systick_init();
-    samd21_systick_enable();
 
     /* Configure the priorities of SysTick, PendSV, SVC
      * Note that SysTick must always be able to execute, so it has priority 0
