@@ -21,6 +21,14 @@ class Samd21(Release):
     packages = ['samd21']
     license = ''
 
+class Saml10(Release):
+    release_name = 'saml10'
+    product_name = 'eChronos-SAML10'
+    enabled = True
+    version = '1.0.0'
+    platforms = ['x86_64-unknown-linux-gnu']
+    packages = ['saml10']
+    license = ''
 
 class Standard(Release):
     packages = ['armv7m', 'generic', 'rtos-example', 'machine-qemu-simple', 'machine-stm32f4-discovery',
