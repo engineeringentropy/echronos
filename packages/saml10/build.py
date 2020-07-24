@@ -19,13 +19,13 @@ def run(system, _=None):
 
 def system_build(system):
     inc_path_args = ['-I%s' % i for i in system.include_paths]
-    common_flags = ['-mthumb', '-mcpu=cortex-m23', '-g3']
+    common_flags = ['-mthumb', '-mcpu=cortex-m23', '-march=armv8-m.base', '-g3']
     a_flags = common_flags
-    # c_flags = common_flags + ['-Os'] + ['-D__SAMD21E18A__']
-    c_flags = common_flags + ['-Og'] + ['-D__SAML10E16A__']
-    ld_flags = ['-mthumb', '-mcpu=cortex-m0plus', \
-                '-march=armv6-m', '-Wl,--gc-sections', \
-                '-T', './packages/samd21/saml10e16a.ld']
+    # c_flags = common_flags + ['-Os'] + ['-D__SAML10E16A__']
+    c_flags = common_flags + ['-Og'] + ['-D__SAML10E16A__', '-std=gnu99']
+    ld_flags = ['-mthumb', '-mcpu=cortex-m23', \
+                '-march=armv8-m.base', '-Wl,--gc-sections', \
+                '-T', './share/packages/saml10/saml10e16a.ld']
 
     all_input_files = system.c_files + system.asm_files
     all_input_files = [os.path.normpath(os.path.abspath(path)) for path in all_input_files]

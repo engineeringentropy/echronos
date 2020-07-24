@@ -1,3 +1,6 @@
+/*
+
+ */
 #include "sam.h"
 #include "rtos-kochab.h"
 
@@ -6,28 +9,38 @@ const int tickMs = 10;
 /* This is approximately 25ms in tickMs units */
 const int delayTicks = 25;
 
+extern void fatal();
+
+uint32_t function1()
+{
+    return 25;
+}
+
 void thread1(void)
 {
-    /* Do thread intialisation */
-    REG_PORT_DIR0 |= (1 << 6);
-    
     while (1) {
-        REG_PORT_OUT0 |= (1 << 6);
         rtos_sleep(delayTicks);
-        REG_PORT_OUT0 &= ~(1 << 6);
+        if (function1() != 25)
+        {
+            fatal();
+        }
         rtos_sleep(delayTicks);
     }
 }
 
+uint32_t function2()
+{
+    return 75;
+}
+
 void thread2(void)
 {
-    /* Do thread initialisation */
-    REG_PORT_DIR0 |= (1 << 17);
-
     while (1) {
-        REG_PORT_OUT0 |= (1 << 17);
         rtos_sleep(delayTicks);
-        REG_PORT_OUT0 &= ~(1 << 17);
+        if (function2() != 75)
+        {
+            fatal();
+        }
         rtos_sleep(delayTicks);
     }
 }

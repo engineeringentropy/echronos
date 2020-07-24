@@ -2,9 +2,9 @@
 
 <system>
     <include_paths>
-        <include_path>./packages/saml10</include_path>
-        <include_path>./packages/saml10/cmsis</include_path>
-        <include_path>./packages/saml10/include</include_path>
+        <include_path>./share/packages/saml10</include_path>
+        <include_path>./share/packages/saml10/cmsis</include_path>
+        <include_path>./share/packages/saml10/include</include_path>
     </include_paths>
     <modules>
         <module name="saml10.build" />
