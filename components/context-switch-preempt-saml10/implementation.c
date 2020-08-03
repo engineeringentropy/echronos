@@ -105,17 +105,6 @@ preempt_init()
 {
     /* Disable all interrupts */
     __disable_irq();
-
-    /* Configure the priorities of SysTick, PendSV, SVC
-     * Note that SysTick must always be able to execute, so it has priority 0
-     * SVC comes after that, and PendSV is the final one.
-     * NVIC_SetPriority takes 0-3, but note that this is converted to 0-192 internally
-     * Lower is higher priority
-     */
-    NVIC_SetPriority(SysTick_IRQn, 0);
-    NVIC_SetPriority(SVCall_IRQn, 1);
-    /* Other interrupts are priority 2? */
-    NVIC_SetPriority(PendSV_IRQn, 3);
 }
 
 static void 
