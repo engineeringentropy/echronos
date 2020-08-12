@@ -8,7 +8,7 @@
 
 /*| public_function_like_macros |*/
 {{#interrupt_events.length}}
-#define {{prefix_func}}interrupt_event_raise(event)
+//#define {{prefix_func}}interrupt_event_raise(event)
 {{/interrupt_events.length}}
 
 /*| public_state |*/
