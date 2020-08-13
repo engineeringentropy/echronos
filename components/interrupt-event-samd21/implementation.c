@@ -64,6 +64,7 @@ interrupt_event_process(void)
         if (tmp & mask) {
             interrupt_event_handle(count);
         }
+        tmp ^= mask;
         mask <<= 1;
         count++;
     }
