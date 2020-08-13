@@ -62,6 +62,21 @@ interrupt_event_process(void)
     uint32_t mask = 1;
     while (tmp != 0) {
         if (tmp & mask) {
+            /*
+             * We're about to handle an interrupt. Because we're about to handle it, we set it to 0 in pending_interrupt_events.
+             * This should be terrifying - if we have an interrupt interrupt us, we could easily end up corrupted.
+             * So we disable interrupts by becoming the highest priority in the system for a few moments.
+             * We use XOR here because we know that the bit is set, and that an interrupt only ever SETS bits, not clears them.
+             * If the previously line changes at some point, this is no longer valid.
+             */
+            uint32_t primask = __get_PRIMASK() & 1;
+            __disable_irq();
+            pending_interrupt_events ^= mask;
+            if (0 == primask)
+            {
+                __enable_irq();
+            }
+            
             interrupt_event_handle(count);
         }
         tmp ^= mask;
